@@ -1,47 +1,54 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { rehydrateState } from "./Redux/auth/authSlice";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./pages/Navbar";
-import Dashboard from "./pages/Dashboard";
 
-function Logout() {
-  localStorage.clear();
-  return <Navigate to="/login" />;
-}
-
-function RegisterAndLogout() {
-  localStorage.clear();
-  return <Register />;
-}
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./route/ProtectedRoute";
+import Logout from "./pages/Logout";
+import Navbar from "./components/user/Navbar";
+import Dashboard from "./components/user/Dashboard";
+import EditForm from "./components/user/EditForm";
 
 function App() {
-  return (
+  const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(rehydrateState());
+  }, [dispatch]);
+
+  return (
     <BrowserRouter>
-        <Navbar/>
+      <Navbar />
       <Routes>
-        <Route
-          path="/"
-          element={
+        
+          <Route path="/" element={
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>
-          }
-        />
-        <Route path='/dashboard' element={
-          <Dashboard/>
-        }/>
-        <Route path="/login" element={<Login />} />
+            } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>            
+            } />
+          <Route path="/edit-profile" element={
+            <ProtectedRoute>
+              <EditForm />
+            </ProtectedRoute>
+            } />
+      
+
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/logout" element={<Logout />} />
-        <Route path="/register" element={<RegisterAndLogout />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-    
   );
 }
 
