@@ -53,12 +53,6 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
         console.log(action.payload,'PAYLOAD')
-        // const {access , user} = action.payload;
-        // const updateUser = {
-        //   first_name: 'Anil',
-        //   last_name: 'Antony',
-        //   profile_pic: '/media/user/profile_pic/Untitled_1_9penxAP.png'
-        // }
         state.token = action.payload.access;
         state.user = action.payload.user;
       })

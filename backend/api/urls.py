@@ -7,7 +7,9 @@ from .views import (
    UserRegisterView,
    UserUpdateView,
    MyTokenObtainPairView,
-   UploadProfileImageView
+   UploadProfileImageView,
+   AdminUserListCreateView,
+   AdminUserRetrieveUpdateDestroyView
    
 )
 
@@ -20,6 +22,11 @@ urlpatterns = [
     path('user/', UserDetailView.as_view(), name='user-detail'),
     path('user/update/', UserUpdateView.as_view(), name='user-update'),
      path('upload/', UploadProfileImageView.as_view(), name='upload-profile-image'),
+
+     # Admin
+
+    path('admin/users/', AdminUserListCreateView.as_view(), name='admin-user-list-create'),
+    path('admin/users/<int:id>/', AdminUserRetrieveUpdateDestroyView.as_view(), name='admin-user-detail'),
     
     # JWT Token URLs
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

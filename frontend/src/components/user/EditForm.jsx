@@ -158,7 +158,7 @@ const handleSubmit = async (e) => {
     <div className="flex items-center justify-center min-h-screen">
       <form className="max-w-md min-w-80 mx-auto" onSubmit={handleSubmit}>
         {/* Profile Picture */}
-        <div className="relative z-0 w-full mb-5 group">
+        {/* <div className="relative z-0 w-full mb-5 group">
           <label
             htmlFor="profile_picture"
             className="block py-2.5 px-0 w-full text-sm text-gray-500 dark:text-gray-400 mb-2"
@@ -187,7 +187,7 @@ const handleSubmit = async (e) => {
               />
             </div>
           </div>
-        </div>
+        </div> */}
         {/* First Name */}
         <div className="relative z-0 w-full mb-5 group">
           <input

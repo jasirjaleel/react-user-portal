@@ -8,6 +8,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
   const token = useSelector(selectCurrentToken);
+  console.log(user,'user');
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   
@@ -37,7 +38,6 @@ const Dashboard = () => {
         const response = await getUserDetails(token);
         const { data } = response;
 
-
         const cleanData = {
           email:data.email,
           first_name:data.first_name,
@@ -66,8 +66,8 @@ const Dashboard = () => {
             className="relative inline-flex items-center justify-center w-24 h-24 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 group cursor-pointer"
             onClick={handleIconClick}
           >
-            {user.profile_pic ? (
-              <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+            {user.profile ? (
+              <img src={user.profile.profile_pic? user.profile.profile_pic : user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <span className="font-medium text-gray-600 dark:text-gray-300">
                 {user.first_name.charAt(0)}{user.last_name.charAt(0)}

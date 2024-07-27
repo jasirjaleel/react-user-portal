@@ -11,32 +11,35 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
+
+        # Ensure the user has a profile
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        
         token['profile_pic'] = cls.get_profile_pic_url(user, None)
         return token
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        request = self.context['request']
-        data['user'] = {
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
-            'profile_pic': self.get_profile_pic_url(self.user, request),
-            'email': self.user.email,
-            'phone_number': self.user.phone_number,
-        }
+        
+        # Ensure the user has a profile
+        profile, created = UserProfile.objects.get_or_create(user=self.user)
+        
+        user_data = UserSerializer(self.user, context=self.context).data
+        data['user'] = user_data
         return data
 
     @staticmethod
     def get_profile_pic_url(user, request):
-        profile_pic = user.profile.profile_pic
-        if profile_pic:
-            if request:
-                return request.build_absolute_uri(profile_pic.url)
-            else:
-                # Fallback if request is not available
-                return f"{settings.BASE_DIR}{profile_pic.url}"
-        return None
-
+        try:
+            profile_pic = user.profile.profile_pic
+            if profile_pic:
+                if request:
+                    return request.build_absolute_uri(profile_pic.url)
+                else:
+                    # Use the site's domain for URL construction
+                    return f"{settings.BASE_DIR}{profile_pic.url}"
+        except UserProfile.DoesNotExist:
+            return None
 # User Register Serializer
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -66,7 +69,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'phone_number', 'email', 'profile']
+        exclude = ('password',)
 
 
 # User Update Serializer
@@ -75,10 +78,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['first_name','last_name', 'phone_number', 'email', 'profile']  # Exclude 'is_active'
+        
+        fields = ['first_name', 'last_name', 'phone_number', 'email', 'profile', 'is_active']
 
     def update(self, instance, validated_data):
-        # Extract profile data
         profile_data = validated_data.pop('profile', None)
 
         # Update user fields
@@ -86,8 +89,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.phone_number = validated_data.get('phone_number', instance.phone_number)
         instance.email = validated_data.get('email', instance.email)
+        instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.save()
 
+        # Update or create profile
         if profile_data:
             profile_instance, created = UserProfile.objects.get_or_create(user=instance)
             profile_pic = profile_data.get('profile_pic')
@@ -96,3 +101,32 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             profile_instance.save()
 
         return instance
+
+    
+    ########### Admin ############
+        
+class AdminUserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = ['id','first_name', 'last_name', 'phone_number', 'email', 'profile', 'is_active','is_superuser','profile']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'first_name': {'error_messages': {'required': 'Please provide the first name.'}},
+            'last_name': {'error_messages': {'required': 'Please provide the last name.'}},
+            'phone_number': {'error_messages': {'required': 'Please provide the phone number.'}},
+            'email': {'error_messages': {'required': 'Please provide the email address.'}},
+        }
+    
+    def create(self, validated_data):
+        profile_data = validated_data.pop('User_Profile', None)
+        password = validated_data.pop('password', None)
+        user_instance = self.Meta.model(**validated_data)
+        if password is not None:
+            user_instance.set_password(password)
+        user_instance.is_active = True
+        user_instance.save()
+        if profile_data:
+            UserProfile.objects.create(user=user_instance, **profile_data)
+        return user_instance
